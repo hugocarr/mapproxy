@@ -23,7 +23,7 @@ try:
 except ImportError:
     redis = None
 
-from mapproxy.cache.redis import RedisCache
+from mapproxy.cache.redis import RedisCache, RedisClusterCache
 from mapproxy.cache.tile import Tile
 from mapproxy.test.unit.test_cache_tile import TileCacheTestBase
 
@@ -42,6 +42,11 @@ class TestRedisCache(TileCacheTestBase):
         if os.environ.get('MAPPROXY_TEST_REDIS_AUTH'):
             redis_host_tls = os.environ['MAPPROXY_TEST_REDIS_AUTH']
             self.auth_host, self.auth_port = redis_host_tls.split(':')
+        if os.environ.get('MAPPROXY_TEST_REDIS_CLUSTER'):
+            redis_cluster = os.environ['MAPPROXY_TEST_REDIS_CLUSTER'].split(",")
+            self.cluster_host_port = [
+                (host, port) for host, port in (host_port.split(':') for host_port in redis_cluster)
+            ]
 
         TileCacheTestBase.setup_method(self)
 
@@ -121,3 +126,13 @@ class TestRedisCache(TileCacheTestBase):
         assert cache.store_tile(t1)
         t2 = Tile(t1.coord)
         assert cache.is_cached(t2)
+
+    @pytest.mark.skipif(not redis or not os.environ.get('MAPPROXY_TEST_REDIS_CLUSTER'),
+                        reason="MAPPROXY_TEST_REDIS_CLUSTER is required to test cluster")
+    def test_cluster(self):
+        for host, port in self.cluster_host_port:
+            cache = RedisClusterCache(host, port, prefix='mapproxy-test', db=1)
+            t1 = self.create_tile(coord=(5382, 6234, 9))
+            assert cache.store_tile(t1)
+            t2 = Tile(t1.coord)
+            assert cache.is_cached(t2)

@@ -1386,6 +1386,37 @@ class CacheConfiguration(ConfigurationBase):
             ssl_ca_certs=ssl_ca_certs
         )
 
+    def _redicluster_cache(self, grid_conf, image_opts):
+        from mapproxy.cache.redis import RedisClusterCache
+
+        host = self.conf['cache'].get('host', '127.0.0.1')
+        port = self.conf['cache'].get('port', 6379)
+        db = self.conf['cache'].get('db', 0)
+        ttl = self.conf['cache'].get('default_ttl', 3600)
+        username = self.conf['cache'].get('username', None)
+        password = self.conf['cache'].get('password', None)
+        coverage = self.coverage()
+        ssl_certfile = self.conf['cache'].get('ssl_certfile', None)
+        ssl_keyfile = self.conf['cache'].get('ssl_keyfile', None)
+        ssl_ca_certs = self.conf['cache'].get('ssl_ca_certs', None)
+        prefix = self.conf['cache'].get('prefix')
+        if not prefix:
+            prefix = self.conf['name'] + '_' + grid_conf.tile_grid().name
+
+        return RedisClusterCache(
+            host=host,
+            port=port,
+            db=db,
+            username=username,
+            password=password,
+            prefix=prefix,
+            ttl=ttl,
+            coverage=coverage,
+            ssl_certfile=ssl_certfile,
+            ssl_keyfile=ssl_keyfile,
+            ssl_ca_certs=ssl_ca_certs
+        )
+
     def _compact_cache(self, grid_conf, image_opts):
         from mapproxy.cache.compact import CompactCacheV1, CompactCacheV2
 

@@ -192,6 +192,18 @@ cache_types = {
         'ssl_keyfile': str(),
         'ssl_ca_certs': str(),
     }),
+    'rediscluster': combined(cache_commons, {
+        'host': str(),
+        'port': int(),
+        'password': str(),
+        'username': str(),
+        'db': int(),
+        'prefix': str(),
+        'default_ttl': int(),
+        'ssl_certfile': str(),
+        'ssl_keyfile': str(),
+        'ssl_ca_certs': str(),
+    }),
     'compact': combined(cache_commons, {
         'directory': str(),
         required('version'): number(),
